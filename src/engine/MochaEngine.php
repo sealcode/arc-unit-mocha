@@ -30,6 +30,8 @@ final class MochaEngine extends ArcanistUnitTestEngine {
         $this->testIncludes = $config->getConfigFromAnySource(
             'unit.mocha.test.include',
             '');
+
+        $this->setEnableCoverage(true);
     }
 
     public function run() {
