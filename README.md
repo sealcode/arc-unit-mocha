@@ -1,47 +1,38 @@
-arc-unit-mocha
-==============
+An xunit and clover -based unit tests runner for Arcanist.
 
-Arcanist unit test engine for running [Mocha](http://mochajs.org/) tests with
-[Istanbul](https://github.com/gotwarlost/istanbul/) for coverage reports.
+## Installation:
 
-## Installation
+Go to the directory that contains `arcanist` and `libphutil`:
 
-1. Copy the library to your project's root directory. A convenient way to do this is by
- adding this repository as a submodule.
+```
+$ ls
+arcanist
+liphutil
+```
 
- ```console
- $ git submodule add https://github.com/rutgersmobile/arc-unit-mocha.git .arc-unit-mocha
- $ git submodule update --init
- ```
+Clone the repository:
 
-2. Load the library and set the test engine by adding these lines to your `.arcconfig`:
- ```json
- "load": [
-     ".arc-unit-mocha/src/"
- ],
+`git clone https://github.com/sealcode/arc-unit-mocha.git`
 
- "unit.engine": "MochaEngine"
- ```
+In the `.arcconfig` file of your projects' repository add:
 
-3. Run `arc unit` to run tests.
+```
+"load": ["arc-unit-mocha/src"]
+```
 
-## Configuration
+## Usage:
 
-The following options can be set in `.arcconfig`:
+create a `test-reports` npm script that produces an `.xunit` file and a `./coverage/clover.xml` file.
 
-| Key                             | Default value                          | Description                                                   |
-| ------------------------------- | -------------------------------------- | ------------------------------------------------------------- |
-| `unit.mocha.bin.mocha`          | `"./node_modules/mocha/bin/mocha"`     | Path used to invoke `mocha`.                                  |
-| `unit.mocha.bin._mocha`         | `"./node_modules/mocha/bin/_mocha"`    | Path used to invoke `_mocha` (used by `istanbul`).            |
-| `unit.mocha.bin.istanbul`       | `"./node_modules/istanbul/lib/cli.js"` | Path used to invoke `istanbul`.                               |
-| `unit.mocha.coverage.reportdir` | `"./coverage"`                         | Path to the directory where `istanbul` should output reports. |
-| `unit.mocha.coverage.exclude`   | `null`                                 | An array of paths to exclude from coverage reports.           |
-| `unit.mocha.include`            | `null`                                 | An array of paths to include for the mocha tests.             |
+in your project's .arcconfig file add:
 
-Example values for `unit.mocha.coverage.exclude`:
-```json
-"unit.mocha.coverage.exclude": [
-  "ignoreme.js",
-  "submodules/**"
-]
+```
+	"unit.engine": "MochaEngine",
+	"unit.mocha.include": ["setup-test.js", "./lib/**/*.test.js"],
+```
+
+If you're running the tests inside a docker container and the files have different paths there, enter the root project directory as it is seen inside the container into the .arcconfig file:
+
+```
+	"unit.mocha.dockerRoot": "/opt/sealious" 
 ```
