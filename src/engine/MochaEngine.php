@@ -11,6 +11,7 @@ final class MochaEngine extends ArcanistUnitTestEngine {
     private $coverReportDir;
     private $coverExcludes;
     private $testIncludes;
+    private $dockerRoot;
 
     /**
      * Determine which executables and test paths to use.
@@ -24,12 +25,7 @@ final class MochaEngine extends ArcanistUnitTestEngine {
         // Get config options
         $config = $this->getConfigurationManager();
 
-        $this->coverExcludes = $config->getConfigFromAnySource(
-            'unit.mocha.coverage.exclude');
-
-        $this->testIncludes = $config->getConfigFromAnySource(
-            'unit.mocha.test.include',
-            '');
+        $this->dockerRoot = $config->getConfigFromAnySource('unit.mocha.dockerRoot', $this->projectRoot);
 
         $this->setEnableCoverage(true);
     }
@@ -54,20 +50,6 @@ final class MochaEngine extends ArcanistUnitTestEngine {
             }
         }
 
-        if ($this->getEnableCoverage() !== false) {
-            // Remove coverage report if it already exists
-            if (file_exists($cover_xml_path)) {
-                if(!unlink($cover_xml_path)) {
-                    throw new Exception("Couldn't delete old coverage report '".$cover_xml_path."'");
-                }
-            }
-
-            // Build and run the coverage command
-            $future = $this->buildCoverFuture();
-            $future->setCWD($this->projectRoot);
-            $future->resolvex();
-        }
-
         // Parse and return the xunit output
         $this->parser = new ArcanistXUnitTestResultParser();
         $results = $this->parseTestResults($xunit_tmp, $cover_xml_path);
@@ -76,11 +58,7 @@ final class MochaEngine extends ArcanistUnitTestEngine {
     }
 
     protected function buildTestFuture() {
-        return new ExecFuture('make --quiet xunit');
-    }
-
-    protected function buildCoverFuture() {
-        return new ExecFuture('make coverage');
+        return new ExecFuture('npm run test-reports');
     }
 
     protected function parseTestResults($xunit_tmp, $cover_xml_path) {
@@ -110,9 +88,9 @@ final class MochaEngine extends ArcanistUnitTestEngine {
 
         $files = $coverage_dom->getElementsByTagName('file');
         foreach ($files as $file) {
-            $absolute_path = $file->getAttribute('path');
+            $absolute_path = str_replace($this->dockerRoot, $this->projectRoot, $file->getAttribute('path'));
             $relative_path = str_replace($this->projectRoot.'/', '', $absolute_path);
-
+            
             $line_count = count(file($absolute_path));
 
             // Mark unused lines as N, covered lines as C, uncovered as U
