@@ -41,14 +41,7 @@ final class MochaEngine extends ArcanistUnitTestEngine {
         $future = $this->buildTestFuture();
         $future->setCWD($this->projectRoot);
 
-        try {
-            list($stdout, $stderr) = $future->resolvex();
-        } catch (CommandException $exc) {
-            if ($exc->getError() > 1) {
-                // mocha returns 1 if tests are failing
-                throw $exc;
-            }
-        }
+        list($stdout, $stderr) = $future->resolvex();
 
         // Parse and return the xunit output
         $this->parser = new ArcanistXUnitTestResultParser();
